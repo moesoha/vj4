@@ -132,6 +132,8 @@ async def set_roles(domain_id: str, roles):
 
 @argmethod.wrap
 async def set_groups(domain_id: str, groups: list):
+  for group in groups:
+    validator.check_group(group)
   for domain in builtin.DOMAINS:
     if domain['_id'] == domain_id:
       raise error.BuiltinDomainError(domain_id)

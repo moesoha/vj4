@@ -222,8 +222,13 @@ class DomainUserHandler(base.OperationHandler):
         rudocs[dudoc['role']].append(dudoc)
     roles = sorted(list(domain.get_all_roles(self.domain).keys()))
     roles_with_text = [(role, role) for role in roles]
+    groups = domain.get_all_groups(self.domain)
+    groups.reverse()
+    groups_with_text = list([('', 'Ungrouped')])
+    groups_with_text.extend([(group, group) for group in groups])
     udict = await user.get_dict(uids)
     self.render('domain_manage_user.html', roles=roles, roles_with_text=roles_with_text,
+                groups=groups, groups_with_text=groups_with_text,
                 rudocs=rudocs, udict=udict)
 
 

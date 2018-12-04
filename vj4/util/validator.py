@@ -11,6 +11,7 @@ MAIL_RE = re.compile(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)+')
 DOMAIN_ID_RE = re.compile(r'[_A-Za-z][_0-9A-Za-z]{3,255}')
 ID_RE = re.compile(r'[^\\/\s\u3000]([^\\/\n\r]*[^\\/\s\u3000])?')
 ROLE_RE = re.compile(r'[_0-9A-Za-z]{1,256}')
+GROUP_RE = re.compile(r'.{1,32}')
 DOMAIN_INVITATION_CODE_RE = re.compile(r'[0-9A-Za-z]{1,64}')
 
 
@@ -80,6 +81,15 @@ def is_role(s):
 def check_role(s):
   if not is_role(s):
     raise error.ValidationError('role')
+
+
+def is_group(s):
+  return bool(GROUP_RE.fullmatch(s))
+
+
+def check_group(s):
+  if not is_group(s):
+    raise error.ValidationError('group')
 
 
 def is_title(s):
