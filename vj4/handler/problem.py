@@ -505,11 +505,11 @@ class ProblemDataHandler(base.Handler):
     # Judges will have PRIV_READ_PROBLEM_DATA,
     # domain administrators will have PERM_READ_PROBLEM_DATA,
     # problem owner will have PERM_READ_PROBLEM_DATA_SELF.
-    pdoc = await problem.get(self.domain_id, pid)
+    pdoc = await problem.get({'$in': [self.domain_id, builtin.DOMAIN_ID_SYSTEM]}, pid)
     if (not self.own(pdoc, builtin.PERM_READ_PROBLEM_DATA_SELF)
         and not self.has_perm(builtin.PERM_READ_PROBLEM_DATA)):
       self.check_priv(builtin.PRIV_READ_PROBLEM_DATA)
-    fdoc = await problem.get_data(self.domain_id, pid)
+    fdoc = await problem.get_data({'$in': [self.domain_id, builtin.DOMAIN_ID_SYSTEM]}, pid)
     if not fdoc:
       raise error.ProblemDataNotFoundError(self.domain_id, pid)
     self.redirect(options.cdn_prefix.rstrip('/') + \

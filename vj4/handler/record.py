@@ -40,7 +40,7 @@ class RecordCommonOperationMixin(object):
           raise error.UserNotFoundError(uid_or_name) from None
         query['uid'] = udoc['_id']
     if pid or tid:
-      query['domain_id'] = self.domain_id
+      query['domain_id'] = {'$in': [self.domain_id, builtin.DOMAIN_ID_SYSTEM]}
       if pid:
         query['pid'] = document.convert_doc_id(pid)
       if tid:

@@ -83,7 +83,7 @@ class ContestVisibilityMixin(object):
 
 class ContestCommonOperationMixin(object):
   async def get_scoreboard(self, tid: objectid.ObjectId, is_export: bool=False):
-    tdoc, tsdocs = await contest.get_and_list_status(self.domain_id, tid)
+    tdoc, tsdocs = await contest.get_and_list_status({'$in': [self.domain_id, builtin.DOMAIN_ID_SYSTEM]}, tid)
     if not self.can_show_scoreboard(tdoc):
       raise error.ContestScoreboardHiddenError(self.domain_id, tid)
     udict, pdict = await asyncio.gather(user.get_dict([tsdoc['uid'] for tsdoc in tsdocs]),
@@ -132,7 +132,7 @@ class ContestMainHandler(ContestMixin, base.Handler):
       tdocs = contest.get_multi(self.domain_id, rule=rule)
       qs = 'rule={0}'.format(rule)
     tdocs, tpcount, _ = await pagination.paginate(tdocs, page, self.CONTESTS_PER_PAGE)
-    tsdict = await contest.get_dict_status(self.domain_id, self.user['_id'],
+    tsdict = await contest.get_dict_status({'$in': [self.domain_id, builtin.DOMAIN_ID_SYSTEM]}, self.user['_id'],
                                            (tdoc['doc_id'] for tdoc in tdocs))
     self.render('contest_main.html', page=page, tpcount=tpcount, qs=qs, rule=rule,
                 tdocs=tdocs, tsdict=tsdict)
@@ -150,7 +150,7 @@ class ContestDetailHandler(ContestMixin, base.OperationHandler):
     # contest
     tdoc = await contest.get(self.domain_id, tid)
     tsdoc, pdict = await asyncio.gather(
-        contest.get_status(self.domain_id, tdoc['doc_id'], self.user['_id']),
+        contest.get_status({'$in': [self.domain_id, builtin.DOMAIN_ID_SYSTEM]}, tdoc['doc_id'], self.user['_id']),
         problem.get_dict({'$in': [self.domain_id, builtin.DOMAIN_ID_SYSTEM]}, tdoc['pids']))
     psdict = dict()
     rdict = dict()
@@ -204,7 +204,7 @@ class ContestCodeHandler(base.OperationHandler):
   @base.sanitize
   @base.limit_rate('contest_code', 3600, 60)
   async def get(self, *, tid: objectid.ObjectId):
-    tdoc, tsdocs = await contest.get_and_list_status(self.domain_id, tid)
+    tdoc, tsdocs = await contest.get_and_list_status({'$in': [self.domain_id, builtin.DOMAIN_ID_SYSTEM]}, tid)
     rnames = {}
     for tsdoc in tsdocs:
       for pdetail in tsdoc.get('detail', []):
@@ -234,7 +234,7 @@ class ContestDetailProblemHandler(ContestMixin, base.Handler):
     tdoc, pdoc = await asyncio.gather(contest.get(self.domain_id, tid),
                                       problem.get({'$in': [self.domain_id, builtin.DOMAIN_ID_SYSTEM]}, pid, uid))
     tsdoc, udoc = await asyncio.gather(
-        contest.get_status(self.domain_id, tdoc['doc_id'], self.user['_id']),
+        contest.get_status({'$in': [self.domain_id, builtin.DOMAIN_ID_SYSTEM]}, tdoc['doc_id'], self.user['_id']),
         user.get_by_uid(tdoc['owner_uid']))
     attended = tsdoc and tsdoc.get('attend') == 1
     if not self.is_done(tdoc):
@@ -264,7 +264,7 @@ class ContestDetailProblemSubmitHandler(ContestMixin, base.Handler):
     tdoc, pdoc = await asyncio.gather(contest.get(self.domain_id, tid),
                                       problem.get({'$in': [self.domain_id, builtin.DOMAIN_ID_SYSTEM]}, pid, uid))
     tsdoc, udoc = await asyncio.gather(
-        contest.get_status(self.domain_id, tdoc['doc_id'], self.user['_id']),
+        contest.get_status({'$in': [self.domain_id, builtin.DOMAIN_ID_SYSTEM]}, tdoc['doc_id'], self.user['_id']),
         user.get_by_uid(tdoc['owner_uid']))
     attended = tsdoc and tsdoc.get('attend') == 1
     if not attended:
@@ -305,7 +305,7 @@ class ContestDetailProblemSubmitHandler(ContestMixin, base.Handler):
                  tid: objectid.ObjectId, pid: document.convert_doc_id, lang: str, code: str):
     tdoc, pdoc = await asyncio.gather(contest.get(self.domain_id, tid),
                                       problem.get({'$in': [self.domain_id, builtin.DOMAIN_ID_SYSTEM]}, pid))
-    tsdoc = await contest.get_status(self.domain_id, tdoc['doc_id'], self.user['_id'])
+    tsdoc = await contest.get_status({'$in': [self.domain_id, builtin.DOMAIN_ID_SYSTEM]}, tdoc['doc_id'], self.user['_id'])
     if not tsdoc or tsdoc.get('attend') != 1:
       raise error.ContestNotAttendedError(tdoc['doc_id'])
     if not self.is_live(tdoc):
@@ -455,5 +455,5 @@ class ContestEditHandler(ContestMixin, base.Handler):
         or tdoc['end_at'] != end_at \
         or set(tdoc['pids']) != set(pids) \
         or tdoc['rule'] != rule:
-      await contest.recalc_status(self.domain_id, tdoc['doc_id'])
+      await contest.recalc_status({'$in': [self.domain_id, builtin.DOMAIN_ID_SYSTEM]}, tdoc['doc_id'])
     self.json_or_redirect(self.reverse_url('contest_detail', tid=tdoc['doc_id']))
