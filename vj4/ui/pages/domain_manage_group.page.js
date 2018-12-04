@@ -64,7 +64,8 @@ const page = new NamedPage('domain_manage_group', () => {
       $body: tpl`
         <div class="typo">
           <p>${i18n('Confirm deleting the selected groups?')}</p>
-          <p>${i18n('Users with those groups will be removed from the domain.')}</p>
+          <p>${i18n('Users with those groups will be remained with this group,' +
+            'but you cannot manage them as a group or add new users to the group.')}</p>
         </div>`,
     }).open();
     if (action !== 'yes') {
