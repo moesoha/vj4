@@ -214,12 +214,15 @@ class DomainUserHandler(base.OperationHandler):
   async def get(self):
     uids = []
     rudocs = collections.defaultdict(list)
+    gudocs = collections.defaultdict(list)
     async for dudoc in domain.get_multi_user(domain_id=self.domain_id,
                                              role={'$gte': ''},
-                                             fields={'uid': 1, 'role': 1}):
+                                             fields={'uid': 1, 'role': 1, 'group': 1}):
       if 'role' in dudoc:
         uids.append(dudoc['uid'])
         rudocs[dudoc['role']].append(dudoc)
+        if 'group' in dudoc:
+          gudocs[dudoc['group']].append(dudoc)
     roles = sorted(list(domain.get_all_roles(self.domain).keys()))
     roles_with_text = [(role, role) for role in roles]
     groups = domain.get_all_groups(self.domain)
@@ -264,6 +267,18 @@ class DomainUserHandler(base.OperationHandler):
       await domain.set_users_role(self.domain_id, uids, role)
     else:
       await domain.unset_users_role(self.domain_id, uids)
+    self.json_or_redirect(self.url)
+
+
+  @base.require_perm(builtin.PERM_EDIT_PERM)
+  @base.require_csrf_token
+  @base.sanitize
+  async def post_set_users_group(self, *, uid: int, group: str=None):
+    try:
+      uids = map(int, (await self.request.post()).getall('uid'))
+    except ValueError:
+      raise error.ValidationError('uid')
+    await domain.set_users_group(self.domain_id, uids, group)
     self.json_or_redirect(self.url)
 
 

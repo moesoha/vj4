@@ -51,6 +51,23 @@ const page = new NamedPage('domain_manage_user', () => {
     return this;
   };
 
+  const setGroupsDialog = new ActionDialog({
+    $body: $('.dialog__body--set-group > div'),
+    // empty string means ungrouped so moved these codes
+    // onDispatch(action){
+    //   const $role = setGroupsDialog.$dom.find('[name="group"]');
+    //   if (action === 'ok' && $role.val() === '') {
+    //     $role.focus();
+    //     return false;
+    //   }
+    //   return true;
+    // },
+  });
+  setGroupsDialog.clear = function () {
+    this.$dom.find('[name="group"]').val('');
+    return this;
+  };
+
   async function handleClickAddUser() {
     const action = await addUserDialog.clear().open();
     if (action !== 'ok') {
@@ -135,6 +152,31 @@ const page = new NamedPage('domain_manage_user', () => {
     }
   }
 
+  async function handleClickSetSelectedGroup() {
+    const selectedUsers = ensureAndGetSelectedUsers();
+    if (selectedUsers === null) {
+      return;
+    }
+    const action = await setGroupsDialog.clear().open();
+    if (action !== 'ok') {
+      return;
+    }
+    const group = setGroupsDialog.$dom.find('[name="group"]').val();
+    console.log(group);
+    try {
+      await request.post('', {
+        operation: 'set_users_group',
+        uid: selectedUsers,
+        group,
+      });
+      Notification.success(i18n('Group has been updated to {0} for selected users.', group));
+      await delay(2000);
+      window.location.reload();
+    } catch (error) {
+      Notification.error(error.message);
+    }
+  }
+
   async function handleChangeUserRole(ev) {
     const row = $(ev.currentTarget).closest('tr');
     const role = $(ev.currentTarget).val();
@@ -150,10 +192,28 @@ const page = new NamedPage('domain_manage_user', () => {
     }
   }
 
+  async function handleChangeUserGroup(ev) {
+    const row = $(ev.currentTarget).closest('tr');
+    const group = $(ev.currentTarget).val();
+    console.log(group);
+    try {
+      await request.post('', {
+        operation: 'set_users_group',
+        uid: [row.attr('data-uid')],
+        group,
+      });
+      Notification.success(i18n('Group has been updated to {0}.', group));
+    } catch (error) {
+      Notification.error(error.message);
+    }
+  }
+
   $('[name="add_user"]').click(() => handleClickAddUser());
   $('[name="remove_selected"]').click(() => handleClickRemoveSelected());
   $('[name="set_roles"]').click(() => handleClickSetSelected());
+  $('[name="set_groups"]').click(() => handleClickSetSelectedGroup());
   $('.domain-users [name="role"]').change(ev => handleChangeUserRole(ev));
+  $('.domain-users [name="group"]').change(ev => handleChangeUserGroup(ev));
 });
 
 export default page;

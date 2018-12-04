@@ -2,6 +2,7 @@ import datetime
 
 from pymongo import errors
 from pymongo import ReturnDocument
+from typing import List
 
 from vj4 import constant
 from vj4 import db
@@ -131,8 +132,8 @@ async def set_roles(domain_id: str, roles):
 
 
 @argmethod.wrap
-async def set_groups(domain_id: str, groups: list):
-  for group in groups:
+async def set_groups(domain_id: str, groups: List[str]):
+  for group in [group.strip() for group in groups]:
     validator.check_group(group)
   for domain in builtin.DOMAINS:
     if domain['_id'] == domain_id:
@@ -249,6 +250,16 @@ async def set_users_role(domain_id: str, uids, role: str):
 
 async def unset_users_role(domain_id: str, uids):
   await unset_users(domain_id, uids, ['role'])
+
+
+async def set_users_group(domain_id: str, uids, group: str):
+  group = group.strip()
+  if group:
+    validator.check_group(group)
+    return await set_users(domain_id, uids, group=group)
+  else:
+    return await unset_users(domain_id, uids, ['group'])
+
 
 
 async def inc_user(domain_id, uid, **kwargs):

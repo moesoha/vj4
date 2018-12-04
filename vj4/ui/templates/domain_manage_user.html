@@ -36,6 +36,21 @@
     </div>
   </div>
 </div>
+<div style="display: none" class="dialog__body--set-group">
+  <div>
+    <div class="row"><div class="columns">
+      <h1>{{ _('Set Group') }}</h1>
+    </div></div>
+    <div class="row">
+      <div class="medium-12 columns">
+        <label>
+          {{ _('Set Groups for selected users') }}
+          {{ form.select(groups_with_text, 'group') }}
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="section">
   <div class="section__header">
     <h1 class="section__title">{{ _('{0}: Users').format(handler.domain['name']) }}</h1>
@@ -86,7 +101,7 @@
             {{ form.select(groups_with_text, 'group', value=rudoc['group'] if 'group' in rudoc else '', extra_class='compact', disabled=is_disabled) }}
           </td>
           <td class="col--role">
-            {{ form.select(roles_with_text, 'role', value=rudoc['group'], extra_class='compact', disabled=is_disabled) }}
+            {{ form.select(roles_with_text, 'role', value=rudoc['role'], extra_class='compact', disabled=is_disabled) }}
           </td>
         </tr>
         {% endfor %}
@@ -97,6 +112,7 @@
   <div class="section__body">
     <button class="rounded button" name="remove_selected">{{ _('Remove Selected User from Domain') }}</button>
     <button class="rounded button" name="set_roles">{{ _('Set Roles for Selected User') }}</button>
+    <button class="rounded button" name="set_groups">{{ _('Set Groups for Selected User') }}</button>
   </div>
 </div>
 {% endblock %}
