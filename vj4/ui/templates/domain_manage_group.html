@@ -1,0 +1,62 @@
+{% extends "domain_base.html" %}
+{% block domain_content %}
+<div style="display: none" class="dialog__body--create-group">
+  <div>
+    <div class="row"><div class="columns">
+      <h1>{{ _('Create Group') }}</h1>
+    </div></div>
+    <div class="row"><div class="columns">
+      {{ form.form_text(columns=None, label='Name', name='group', autofocus=True) }}
+    </div></div>
+  </div>
+</div>
+<div class="section">
+  <div class="section__header">
+    <h1 class="section__title">{{ _('{0}: Groups').format(handler.domain['name']) }}</h1>
+    <div class="section__tools">
+      <button class="primary rounded button" name="create_group">{{ _('Create Group') }}</button>
+    </div>
+  </div>
+  {{ noscript_note.render() }}
+  <div class="section__body no-padding domain-groups">
+    <table class="data-table">
+      <colgroup>
+        <col class="col--checkbox">
+        <col class="col--id">
+        <col class="col--users">
+      </colgroup>
+      <thead>
+        <tr>
+          <th class="col--checkbox">
+            <label class="compact checkbox">
+              <input type="checkbox" data-checkbox-toggle="group">
+            </label>
+          </th>
+          <th class="col--id">{{ _('Group') }}</th>
+          <th class="col--users">{{ _('Users') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for group in groups %}
+        <tr data-group="{{ group }}">
+          <td class="col--checkbox">
+            <label class="compact checkbox">
+              <input type="checkbox" data-checkbox-group="group" data-checkbox-range>
+            </label>
+          </td>
+          <td class="col--id">
+            {{ group }}
+          </td>
+          <td class="col--users">
+            {{ gucounts[group] }}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="section__body">
+    <button class="rounded button" name="delete_selected">{{ _('Delete Selected Groups') }}</button>
+  </div>
+</div>
+{% endblock %}

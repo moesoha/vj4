@@ -318,3 +318,42 @@ class DomainRoleHandler(base.OperationHandler):
   async def post_delete(self, *, role: str):
     await domain.delete_roles(self.domain_id, (await self.request.post()).getall('role'))
     self.json_or_redirect(self.url)
+
+
+@app.route('/domain/group', 'domain_manage_group')
+class DomainRoleHandler(base.OperationHandler):
+  @base.require_perm(builtin.PERM_EDIT_PERM)
+  async def get(self):
+    gucounts = collections.defaultdict(int)
+    async for dudoc in domain.get_multi_user(domain_id=self.domain_id,
+                                             group={'$gte': ''},
+                                             fields={'uid': 1, 'group': 1}):
+      if 'group' in dudoc:
+        gucounts[dudoc['group']] += 1
+    groups = sorted(domain.get_all_groups(self.domain))
+    self.render('domain_manage_group.html', gucounts=gucounts, groups=groups)
+
+  @base.require_perm(builtin.PERM_EDIT_PERM)
+  @base.require_csrf_token
+  @base.sanitize
+  async def post_add(self, *, group: str):
+    groups = domain.get_all_groups(self.domain)
+    if group in groups:
+      raise error.DomainGroupAlreadyExistError(self.domain_id, group)
+    else:
+      groups.append(group)
+    await domain.set_groups(self.domain_id, groups)
+    self.json_or_redirect(self.url)
+
+  @base.require_perm(builtin.PERM_EDIT_PERM)
+  @base.require_csrf_token
+  @base.sanitize
+  async def post_delete(self, *, group: str):
+    groups = domain.get_all_groups(self.domain)
+    for group in (await self.request.post()).getall('group'):
+      if group not in groups:
+        raise error.DomainGroupNotExistError(self.domain_id, group)
+      else:
+        groups.remove(group)
+    await domain.set_groups(self.domain_id, groups)
+    self.json_or_redirect(self.url)

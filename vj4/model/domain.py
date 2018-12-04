@@ -131,6 +131,17 @@ async def set_roles(domain_id: str, roles):
 
 
 @argmethod.wrap
+async def set_groups(domain_id: str, groups: list):
+  for domain in builtin.DOMAINS:
+    if domain['_id'] == domain_id:
+      raise error.BuiltinDomainError(domain_id)
+  coll = db.coll('domain')
+  return await coll.find_one_and_update(filter={'_id': domain_id},
+                                        update={'$set': {'groups': groups}},
+                                        return_document=ReturnDocument.AFTER)
+
+
+@argmethod.wrap
 async def delete_role(domain_id: str, role: str):
   return await delete_roles(domain_id, [role])
 
@@ -282,6 +293,13 @@ def get_all_roles(ddoc):
   builtin_roles = {role: rd.default_permission for role, rd in builtin.BUILTIN_ROLE_DESCRIPTORS.items()}
   domain_roles = ddoc['roles']
   return {**builtin_roles, **domain_roles}
+
+
+def get_all_groups(ddoc):
+  if 'groups' in ddoc:
+    return ddoc['groups']
+  else:
+    return []
 
 
 def get_join_settings(ddoc, now):

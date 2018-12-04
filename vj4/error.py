@@ -320,6 +320,18 @@ class DomainRoleAlreadyExistError(ForbiddenError):
     return 'Role {1} already exists in domain {0}.'
 
 
+class DomainGroupAlreadyExistError(ForbiddenError):
+  @property
+  def message(self):
+    return 'Group {1} already exists in domain {0}.'
+
+
+class DomainGroupNotExistError(ForbiddenError):
+  @property
+  def message(self):
+    return 'Group {1} does not exist in domain {0}.'
+
+
 class ModifyBuiltinRoleError(ForbiddenError):
   @property
   def message(self):
