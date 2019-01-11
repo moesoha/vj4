@@ -37,6 +37,11 @@ class HandlerBase(setting.SettingMixin):
     self.translate = locale.get_translate(options.default_locale)  # Default translate for errors.
     self.session = await self.update_session()
     self.domain_id = self.request.match_info.pop('domain_id', builtin.DOMAIN_ID_SYSTEM)
+    header_host = self.request.headers.get('Host','')
+    if ('.' + options.domain_root) in header_host:
+      subdomain_idx = header_host.index('.' + options.domain_root)
+      self.domain_id = header_host[:subdomain_idx]
+
     if 'uid' in self.session:
       uid = self.session['uid']
       self.user, self.domain, self.domain_user, bdoc = await asyncio.gather(
