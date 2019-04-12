@@ -341,6 +341,7 @@ async def ensure_indexes():
   await coll.create_index('name')
   user_coll = db.coll('domain.user')
   await user_coll.create_index('uid')
+  await user_coll.create_index('name')
   await user_coll.create_index([('domain_id', 1),
                                 ('uid', 1)], unique=True)
   await user_coll.create_index([('domain_id', 1),
